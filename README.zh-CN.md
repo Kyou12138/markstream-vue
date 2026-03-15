@@ -275,10 +275,26 @@ function addChunk(chunk: string) {
 
 - **默认虚拟化窗口**：保持 `max-live-nodes` 默认值（`320`），渲染器会立即渲染当前窗口的节点，同时只保留有限数量的 DOM 节点，实现平滑滚动与可控内存，占位骨架极少。
 - **增量流式模式**：当需要更明显的“打字机”体验时，将 `:max-live-nodes="0"`。这会关闭虚拟化并启用 `batchRendering` 系列参数控制的增量渲染，新的节点会以小批次加上占位骨架的形式进入视图。
+- **内存优先模式**：进一步降低 `max-live-nodes` 和批次大小，适合同页多个渲染器或超长会话场景。
 
 可根据页面类型选择最合适的模式：虚拟化适合长文档/回溯需求，增量流式适合聊天或 AI 输出面板。
 
 > 小贴士：聊天场景可使用 `max-live-nodes="0"`，并将 `renderBatchSize` 调小（如 `16`），`renderBatchDelay` 设为较小值（如 `8ms`），获得平滑的“打字”节奏且避免大段跳变。如需限制单帧 CPU，可适当调低 `renderBatchBudgetMs`。
+
+也可以直接使用内置预设：
+
+```ts
+import { getNodeRendererPerformancePreset } from 'markstream-vue'
+
+const typingPreset = getNodeRendererPerformancePreset('typing')
+```
+
+```vue
+<MarkdownRender
+  :content="streamingMarkdown"
+  v-bind="typingPreset"
+/>
+```
 
 ## 🧰 关键属性速览
 

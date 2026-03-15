@@ -274,10 +274,26 @@ This avoids re-parsing SSR content while letting later SSE/WebSocket chunks cont
 
 - **Virtual window (default)** – keep `max-live-nodes` at its default `320` to enable virtualization. Nodes render immediately and the renderer keeps a sliding window of elements mounted so long docs remain responsive without showing skeleton placeholders.
 - **Incremental stream** – set `:max-live-nodes="0"` when you want a true typewriter effect. This disables virtualization and turns on incremental batching governed by `batchRendering`, `initialRenderBatchSize`, `renderBatchSize`, `renderBatchDelay`, and `renderBatchBudgetMs`, so new content flows in small slices with lightweight placeholders.
+- **Memory saver** – reduce `max-live-nodes` and batch size when your page hosts multiple renderers or very long transcripts.
 
 Pick one mode per surface: virtualization for best scrollback and steady memory usage, or incremental batching for AI-style “typing” previews.
 
 > Tip: In chats, combine `max-live-nodes="0"` with small `renderBatchSize` (e.g., `16`) and a tiny `renderBatchDelay` (e.g., `8ms`) to keep the “typing” feel smooth without jumping large chunks. Tune `renderBatchBudgetMs` down if you need to cap CPU per frame.
+
+Use built-in presets directly:
+
+```ts
+import { getNodeRendererPerformancePreset } from 'markstream-vue'
+
+const typingPreset = getNodeRendererPerformancePreset('typing')
+```
+
+```vue
+<MarkdownRender
+  :content="streamingMarkdown"
+  v-bind="typingPreset"
+/>
+```
 
 ## 🧰 Key props & options (cheatsheet)
 

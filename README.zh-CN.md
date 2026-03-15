@@ -273,15 +273,15 @@ function addChunk(chunk: string) {
 
 ## ⚙️ 性能模式
 
-- **默认虚拟化窗口**：保持 `max-live-nodes` 默认值（`320`），渲染器会立即渲染当前窗口的节点，同时只保留有限数量的 DOM 节点，实现平滑滚动与可控内存，占位骨架极少。
-- **增量流式模式**：当需要更明显的“打字机”体验时，将 `:max-live-nodes="0"`。这会关闭虚拟化并启用 `batchRendering` 系列参数控制的增量渲染，新的节点会以小批次加上占位骨架的形式进入视图。
-- **内存优先模式**：进一步降低 `max-live-nodes` 和批次大小，适合同页多个渲染器或超长会话场景。
+如果你不想手动调 8+ 个性能参数，建议直接使用内置预设。
 
-可根据页面类型选择最合适的模式：虚拟化适合长文档/回溯需求，增量流式适合聊天或 AI 输出面板。
+| 预设 | 适用场景 | 关键特征 |
+| --- | --- | --- |
+| `virtualWindow`（默认） | 长文档 / 知识库页面 | 开启虚拟化（`maxLiveNodes: 320`），滚动稳定，内存可控 |
+| `typing` | 聊天 / AI 流式输出 | 关闭虚拟化（`maxLiveNodes: 0`），小批次渲染（`renderBatchSize: 16`、`renderBatchDelay: 8`） |
+| `memorySaver` | 同页多个渲染器 / 低内存设备 | 更小保活窗口（`maxLiveNodes: 160`）+ 中等批次 |
 
-> 小贴士：聊天场景可使用 `max-live-nodes="0"`，并将 `renderBatchSize` 调小（如 `16`），`renderBatchDelay` 设为较小值（如 `8ms`），获得平滑的“打字”节奏且避免大段跳变。如需限制单帧 CPU，可适当调低 `renderBatchBudgetMs`。
-
-也可以直接使用内置预设：
+快速使用：
 
 ```ts
 import { getNodeRendererPerformancePreset } from 'markstream-vue'
@@ -295,6 +295,19 @@ const typingPreset = getNodeRendererPerformancePreset('typing')
   v-bind="typingPreset"
 />
 ```
+
+仅覆盖你关心的参数：
+
+```ts
+const chatPreset = getNodeRendererPerformancePreset('typing', {
+  renderBatchSize: 20,
+  viewportPriority: true,
+})
+```
+
+说明：
+- 预设只覆盖 NodeRenderer 的性能参数（如 `maxLiveNodes`、批次渲染、`viewportPriority`）。
+- 流结束请仍然显式设置 `:final="true"`（或解析时传 `{ final: true }`），这个行为不放在预设里。
 
 ## 🧰 关键属性速览
 

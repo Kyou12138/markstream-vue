@@ -272,15 +272,15 @@ This avoids re-parsing SSR content while letting later SSE/WebSocket chunks cont
 
 ## ⚙️ Performance presets
 
-- **Virtual window (default)** – keep `max-live-nodes` at its default `320` to enable virtualization. Nodes render immediately and the renderer keeps a sliding window of elements mounted so long docs remain responsive without showing skeleton placeholders.
-- **Incremental stream** – set `:max-live-nodes="0"` when you want a true typewriter effect. This disables virtualization and turns on incremental batching governed by `batchRendering`, `initialRenderBatchSize`, `renderBatchSize`, `renderBatchDelay`, and `renderBatchBudgetMs`, so new content flows in small slices with lightweight placeholders.
-- **Memory saver** – reduce `max-live-nodes` and batch size when your page hosts multiple renderers or very long transcripts.
+Use built-in presets when you want stable behavior without manually tuning 8+ rendering props.
 
-Pick one mode per surface: virtualization for best scrollback and steady memory usage, or incremental batching for AI-style “typing” previews.
+| Preset | Best for | Key characteristics |
+| --- | --- | --- |
+| `virtualWindow` (default) | long docs / knowledge bases | virtualization on (`maxLiveNodes: 320`), smooth scrollback, predictable memory |
+| `typing` | chat / AI streaming panel | virtualization off (`maxLiveNodes: 0`), small render batches (`renderBatchSize: 16`, `renderBatchDelay: 8`) |
+| `memorySaver` | multiple renderers on one page / low-memory devices | smaller live window (`maxLiveNodes: 160`) + moderate batching |
 
-> Tip: In chats, combine `max-live-nodes="0"` with small `renderBatchSize` (e.g., `16`) and a tiny `renderBatchDelay` (e.g., `8ms`) to keep the “typing” feel smooth without jumping large chunks. Tune `renderBatchBudgetMs` down if you need to cap CPU per frame.
-
-Use built-in presets directly:
+Quick start:
 
 ```ts
 import { getNodeRendererPerformancePreset } from 'markstream-vue'
@@ -294,6 +294,19 @@ const typingPreset = getNodeRendererPerformancePreset('typing')
   v-bind="typingPreset"
 />
 ```
+
+Override only what you need:
+
+```ts
+const chatPreset = getNodeRendererPerformancePreset('typing', {
+  renderBatchSize: 20,
+  viewportPriority: true,
+})
+```
+
+Notes:
+- Presets only cover NodeRenderer performance props (`maxLiveNodes`, batching, viewport priority, etc.).
+- Use `:final="true"` (or parser `{ final: true }`) when the stream is complete; this is intentionally not part of the preset.
 
 ## 🧰 Key props & options (cheatsheet)
 
